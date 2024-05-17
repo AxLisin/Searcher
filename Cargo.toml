@@ -1,0 +1,10 @@
+[package]
+name = "searcher"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.83"
+colored = "2.1.0"
+fuzzy-matcher = "0.3.7"
+rayon = "1.10.0"
