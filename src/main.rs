@@ -5,6 +5,7 @@ mod matcher {
 }
 
 mod searcher {
+    pub mod after_search;
     pub mod searcher;
     pub mod top_matches;
 }
@@ -32,10 +33,5 @@ fn main() {
         .unwrap();
 
     let searcher = Searcher::new(current_dir.clone(), query.to_string(), verbose);
-
-    let start = std::time::Instant::now();
-
     searcher.search(&current_dir.clone()).unwrap();
-
-    println!("\nTime elapsed: {:?}", start.elapsed());
 }

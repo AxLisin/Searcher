@@ -1,9 +1,11 @@
 use std::{
     path::PathBuf,
+    str::FromStr,
     sync::{Arc, Mutex},
     thread,
 };
 
+use inquire::{Select, Text};
 use rayon::iter::{ParallelBridge, ParallelIterator};
 
 use crate::{
@@ -11,6 +13,8 @@ use crate::{
     searcher::top_matches::get_top_matches,
     utils::{clear_screen::clear_screen, str_ext::StrExt},
 };
+
+use super::after_search::AfterSearchOption;
 
 pub struct Searcher {
     base_dir: PathBuf,
@@ -81,7 +85,49 @@ impl Searcher {
         anyhow::Ok(())
     }
 
+    fn show_all(&self) {
+        let matches = self.matches.lock().unwrap();
+        let matches = matches
+            .iter()
+            .map(|(_, path)| path.to_string())
+            .collect::<Vec<String>>();
+
+        clear_screen();
+
+        println!("\nAll Matches ({}):", matches.len());
+        println!("{}", matches.join("\n"));
+    }
+
+    fn filter(&self) {
+        let query = Text::new("Filter by:").prompt().unwrap();
+        let matches = self.matches.lock().unwrap();
+
+        let matches = matches
+            .iter()
+            .filter(|(_, path)| path.contains(&query))
+            .map(|(_, path)| path.to_string())
+            .collect::<Vec<String>>();
+
+        clear_screen();
+        println!("\nFiltered Matches ({}):", matches.len());
+        println!("{}", matches.join("\n"));
+    }
+
+    fn after_search(&self) -> anyhow::Result<()> {
+        let answer = Select::new("Options:", AfterSearchOption::VARIANTS.to_vec()).prompt()?;
+        let answer = AfterSearchOption::from_str(&answer).unwrap();
+
+        match answer {
+            AfterSearchOption::ShowAll => self.show_all(),
+            AfterSearchOption::Filter => self.filter(),
+        }
+
+        Ok(())
+    }
+
     pub fn search(&self, path: &PathBuf) -> anyhow::Result<()> {
+        let start = std::time::Instant::now();
+
         let matches = Arc::clone(&self.matches);
         let last_printed = Arc::clone(&self.last_printed);
 
@@ -119,15 +165,22 @@ impl Searcher {
         self.search_directory(path).unwrap();
         *completed_search.lock().unwrap() = true;
 
-        let matches = self.matches.lock().unwrap();
-        let (matches, extra_matches) = get_top_matches(&mut matches.clone());
+        let matches_ref = self.matches.lock().unwrap();
+        let (matches, extra_matches) = get_top_matches(&mut matches_ref.clone());
 
-        println!("finished");
-
-        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+        clear_screen();
 
         println!("{}", matches.join("\n"));
-        println!("... {} more matches", extra_matches);
+        println!(
+            "... {} more matches in {:?}\n",
+            extra_matches,
+            start.elapsed()
+        );
+
+        drop(matches_ref);
+
+        self.after_search()?;
+
         Ok(())
     }
 }
