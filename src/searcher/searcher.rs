@@ -92,9 +92,11 @@ impl Searcher {
             .map(|(_, path)| path.to_string())
             .collect::<Vec<String>>();
 
+        print!("\n");
+
         clear_screen();
 
-        println!("\nAll Matches ({}):", matches.len());
+        println!("All Matches ({}):", matches.len());
         println!("{}", matches.join("\n"));
     }
 
@@ -108,7 +110,10 @@ impl Searcher {
             .map(|(_, path)| path.to_string())
             .collect::<Vec<String>>();
 
+        print!("\n");
+
         clear_screen();
+        
         println!("\nFiltered Matches ({}):", matches.len());
         println!("{}", matches.join("\n"));
     }
