@@ -113,8 +113,8 @@ impl Searcher {
         print!("\n");
 
         clear_screen();
-        
-        println!("\nFiltered Matches ({}):", matches.len());
+
+        println!("Filtered Matches ({}):", matches.len());
         println!("{}", matches.join("\n"));
     }
 
