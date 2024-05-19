@@ -1,6 +1,6 @@
 use std::cmp::min;
 
-pub fn get_top_matches(matches: &mut Vec<(i64, String)>) -> (Vec<String>, usize) {
+pub fn get_top_matches(matches: &mut [(i64, String)]) -> (Vec<String>, usize) {
     let slice_index = min(matches.len(), 10);
     let extra_matches = matches.len() - slice_index;
 

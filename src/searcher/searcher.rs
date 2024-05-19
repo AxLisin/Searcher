@@ -1,5 +1,5 @@
 use std::{
-    path::PathBuf,
+    path::{Path, PathBuf},
     str::FromStr,
     sync::{Arc, Mutex},
     thread,
@@ -35,7 +35,7 @@ impl Searcher {
         }
     }
 
-    fn check_match(&self, path: &PathBuf, is_dir: bool) {
+    fn check_match(&self, path: &Path, _is_dir: bool) {
         let base_dir = &self.base_dir;
         let matcher = &self.matcher;
 
@@ -46,13 +46,8 @@ impl Searcher {
 
         if let Some((score, indices)) = matcher.fmatch(file_name) {
             let colored_name = file_name.colorize_matches(indices);
-            let formatted_string: String;
 
-            if is_dir {
-                formatted_string = format!(".\\{}\\{}", parent_dir, colored_name);
-            } else {
-                formatted_string = format!(".\\{}\\{}", parent_dir, colored_name);
-            }
+            let formatted_string = format!(".\\{}\\{}", parent_dir, colored_name);
 
             let mut matches = self.matches.lock().unwrap();
 
@@ -60,7 +55,7 @@ impl Searcher {
         }
     }
 
-    fn search_directory(&self, path: &PathBuf) -> anyhow::Result<()> {
+    fn search_directory(&self, path: &Path) -> anyhow::Result<()> {
         let Ok(children) = std::fs::read_dir(path) else {
             if self.verbose {
                 println!("Error reading directory: {:?}", path);
@@ -70,7 +65,7 @@ impl Searcher {
         };
 
         children
-            .filter_map(|entry| Some(entry.unwrap().path()))
+            .map(|entry| (entry.unwrap().path()))
             .par_bridge()
             .for_each(|path| {
                 let is_dir = path.is_dir();
@@ -92,7 +87,7 @@ impl Searcher {
             .map(|(_, path)| path.to_string())
             .collect::<Vec<String>>();
 
-        print!("\n");
+        println!();
 
         clear_screen();
 
@@ -110,7 +105,7 @@ impl Searcher {
             .map(|(_, path)| path.to_string())
             .collect::<Vec<String>>();
 
-        print!("\n");
+            println!();
 
         clear_screen();
 
@@ -120,7 +115,7 @@ impl Searcher {
 
     fn after_search(&self) -> anyhow::Result<()> {
         let answer = Select::new("Options:", AfterSearchOption::VARIANTS.to_vec()).prompt()?;
-        let answer = AfterSearchOption::from_str(&answer).unwrap();
+        let answer = AfterSearchOption::from_str(answer).unwrap();
 
         match answer {
             AfterSearchOption::ShowAll => self.show_all(),
@@ -130,7 +125,7 @@ impl Searcher {
         Ok(())
     }
 
-    pub fn search(&self, path: &PathBuf) -> anyhow::Result<()> {
+    pub fn search(&self, path: &Path) -> anyhow::Result<()> {
         let start = std::time::Instant::now();
 
         let matches = Arc::clone(&self.matches);

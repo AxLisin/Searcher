@@ -10,7 +10,7 @@ impl Matcher {
     pub fn new(query: String) -> Self {
         Self {
             query,
-            fuzzy_matcher: Box::new(SkimMatcherV2::default()),
+            fuzzy_matcher: Box::<SkimMatcherV2>::default(),
         }
     }
 
