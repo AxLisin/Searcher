@@ -9,7 +9,7 @@ cargo install --git https://github.com/Sw1ndlers/Searcher
 ```
 
 ## Usage
-
+Searcher will search directories below the current directory
 ```
 searcher <query>
 ```
