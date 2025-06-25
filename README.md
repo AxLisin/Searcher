@@ -1,5 +1,5 @@
 ## Information
-Searcher is a fast file name fuzzy searcher
+Searcher is a fast and lightweight file name fuzzy searcher created in rust  
 Currently does not have the option to search file content
 
 ## Installation
